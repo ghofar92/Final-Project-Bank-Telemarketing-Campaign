@@ -87,7 +87,3 @@ Dashboard ini berfungsi sebagai **pendukung pengambilan keputusan bisnis**.
 - **Visualisasi Data**: Tableau Public
 - **Model**: Random Forest Classifier
 
----
-
-## 📂 Struktur Repository
-
