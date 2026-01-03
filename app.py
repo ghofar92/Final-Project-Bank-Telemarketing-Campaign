@@ -35,7 +35,7 @@ menu = st.sidebar.radio(
 # =====================================================
 if menu == "Single Prediction":
     st.title("🔍 Single Customer Prediction")
-    st.caption("Mode simulasi – input utama diisi manual")
+    st.caption("Cek Potensi Nasabah – isi data nasabah secara manual")
 
     col1, col2 = st.columns(2)
 
@@ -122,7 +122,7 @@ if menu == "Single Prediction":
 # =====================================================
 else:
     st.title("📂 Bulk Customer Prediction")
-    st.caption("Upload CSV / Excel dengan kolom minimal")
+    st.caption("Upload File CSV / File Excel")
 
     uploaded_file = st.file_uploader(
         "Upload File",
