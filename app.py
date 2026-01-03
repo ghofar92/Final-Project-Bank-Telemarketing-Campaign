@@ -30,118 +30,89 @@ menu = st.sidebar.radio(
 )
 
 # =====================================================
-# SINGLE PREDICTION (SIMPLIFIED & SAFE)
+# SINGLE PREDICTION
 # =====================================================
 if menu == "Single Prediction":
     st.title("🔍 Single Customer Prediction")
-    st.caption("Mode simulasi – field disederhanakan, sisanya otomatis")
+    st.caption("Mode simulasi – input utama diisi manual")
 
     col1, col2 = st.columns(2)
 
     with col1:
         age = st.number_input("Age", 18, 100, 30)
-
-        housing = st.selectbox(
-            "Housing Loan (KPR)",
-            ["no", "yes", "unknown"]
-        )
-
-        loan = st.selectbox(
-            "Personal Loan",
-            ["no", "yes", "unknown"]
-        )
+        housing = st.selectbox("Housing Loan (KPR)", ["no", "yes", "unknown"])
+        loan = st.selectbox("Personal Loan", ["no", "yes", "unknown"])
+        default = st.selectbox("Credit Default", ["no", "yes", "unknown"])
 
     with col2:
         job = st.selectbox(
             "Job",
             [
-                "admin.",
-                "blue-collar",
-                "entrepreneur",
-                "housemaid",
-                "management",
-                "retired",
-                "self-employed",
-                "services",
-                "student",
-                "technician",
-                "unemployed",
-                "unknown"
+                "admin.", "blue-collar", "entrepreneur", "housemaid",
+                "management", "retired", "self-employed", "services",
+                "student", "technician", "unemployed", "unknown"
             ]
         )
-
-        marital = st.selectbox(
-            "Marital Status",
-            ["single", "married", "divorced", "unknown"]
-        )
-
+        marital = st.selectbox("Marital Status", ["single", "married", "divorced", "unknown"])
         education = st.selectbox(
             "Education",
             [
-                "basic.4y",
-                "basic.6y",
-                "basic.9y",
-                "high.school",
-                "professional.course",
-                "university.degree",
-                "unknown"
+                "basic.4y", "basic.6y", "basic.9y",
+                "high.school", "professional.course",
+                "university.degree", "unknown"
             ]
         )
+        contact = st.selectbox("Contact Type", ["cellular", "telephone"])
 
-    # -------------------------------------------------
-    # BASE INPUT
-    # -------------------------------------------------
-    input_df = pd.DataFrame([{
+    # -----------------------------
+    # DISPLAY INPUT (RINGKAS)
+    # -----------------------------
+    display_df = pd.DataFrame([{
         "age": age,
         "job": job,
         "marital": marital,
         "education": education,
         "housing": housing,
-        "loan": loan
+        "loan": loan,
+        "default": default,
+        "contact": contact
     }])
 
-    # -------------------------------------------------
-    # AUTO-FILL REQUIRED MODEL FEATURES
-    # -------------------------------------------------
-    input_df["balance"] = 0.0
-    input_df["duration"] = 100
-    input_df["campaign"] = 1
-    input_df["previous"] = 0
-    input_df["poutcome"] = "unknown"
-    input_df["month"] = "may"
-    input_df["day_of_week"] = "mon"
-    input_df["euribor3m"] = 4.0
+    st.subheader("Input Data")
+    st.dataframe(display_df, use_container_width=True)
 
-    input_df["default"] = "no"
-    input_df["contact"] = "cellular"
+    # -----------------------------
+    # DATA KE MODEL (LENGKAP)
+    # -----------------------------
+    model_df = display_df.copy()
 
-    input_df["cons.price.idx"] = 93.5
-    input_df["cons.conf.idx"] = -40.0
-
-    input_df["campaign_capped"] = 1
-    input_df["is_previously_contacted"] = 0
-
-    st.subheader("Input Data (Final ke Model)")
-    st.dataframe(input_df, use_container_width=True)
+    model_df["balance"] = 0
+    model_df["duration"] = 100
+    model_df["campaign"] = 1
+    model_df["previous"] = 0
+    model_df["poutcome"] = "unknown"
+    model_df["month"] = "may"
+    model_df["day_of_week"] = "mon"
+    model_df["euribor3m"] = 4.0
+    model_df["cons.price.idx"] = 93.5
+    model_df["cons.conf.idx"] = -40.0
+    model_df["campaign_capped"] = 1
+    model_df["is_previously_contacted"] = 0
 
     if st.button("Predict"):
-        try:
-            prediction = model.predict(input_df)
-            probability = model.predict_proba(input_df)
+        pred = model.predict(model_df)
+        proba = model.predict_proba(model_df)
 
-            st.success(f"Prediction Result: **{prediction[0]}**")
-            st.metric("Probability YES", f"{probability[0][1]:.2%}")
-
-        except Exception as e:
-            st.error("❌ Error saat prediksi")
-            st.code(str(e))
+        st.success("Prediction Result")
+        st.write(f"**Prediction:** {pred[0]}")
+        st.write(f"**Probability YES:** {proba[0][1] * 100:.2f}%")
 
 # =====================================================
-# BULK PREDICTION (REAL USE CASE)
+# BULK PREDICTION (KOLOM MINIMAL)
 # =====================================================
 else:
     st.title("📂 Bulk Customer Prediction")
-    st.caption("Upload CSV / Excel dengan kolom sesuai data training")
+    st.caption("Upload CSV / Excel dengan kolom minimal")
 
     uploaded_file = st.file_uploader(
         "Upload File",
@@ -155,13 +126,61 @@ else:
             else pd.read_excel(uploaded_file)
         )
 
-        st.subheader("Preview Data")
+        st.subheader("Preview Data (Upload)")
         st.dataframe(df.head(), use_container_width=True)
+
+        # -----------------------------
+        # VALIDASI KOLOM MINIMAL
+        # -----------------------------
+        required_cols = [
+            "customer_name",
+            "phone_number",
+            "age",
+            "job",
+            "marital",
+            "education",
+            "default",
+            "housing",
+            "loan",
+            "contact"
+        ]
+
+        missing_cols = set(required_cols) - set(df.columns)
+        if missing_cols:
+            st.error(f"Kolom berikut WAJIB ada: {missing_cols}")
+            st.stop()
 
         if st.button("Run Prediction"):
             try:
-                preds = model.predict(df)
-                probas = model.predict_proba(df)
+                df_model = df.copy()
+
+                # AUTO-FILL KOLOM TEKNIS
+                df_model["balance"] = 0
+                df_model["duration"] = 100
+                df_model["campaign"] = 1
+                df_model["previous"] = 0
+                df_model["poutcome"] = "unknown"
+                df_model["month"] = "may"
+                df_model["day_of_week"] = "mon"
+                df_model["euribor3m"] = 4.0
+                df_model["cons.price.idx"] = 93.5
+                df_model["cons.conf.idx"] = -40.0
+                df_model["campaign_capped"] = 1
+                df_model["is_previously_contacted"] = 0
+
+                feature_cols = [
+                    "age", "job", "marital", "education", "default",
+                    "housing", "loan", "contact",
+                    "balance", "duration", "campaign", "previous",
+                    "poutcome", "month", "day_of_week", "euribor3m",
+                    "cons.price.idx", "cons.conf.idx",
+                    "campaign_capped", "is_previously_contacted"
+                ]
+
+                X = df_model[feature_cols]
+
+                preds = model.predict(X)
+                probas = model.predict_proba(X)
 
                 df["prediction"] = preds
                 df["probability_yes (%)"] = (probas[:, 1] * 100).round(2)
