@@ -12,14 +12,10 @@ Solusi ini dilengkapi dengan **aplikasi Streamlit** untuk prediksi dan
 
 - 🚀 **Aplikasi Streamlit (Prediksi Nasabah)**  
   https://final-project-bank-telemarketing-campaign-hjbtugbpsueu5yf6fzhf.streamlit.app/
-  <img width="1886" height="849" alt="image" src="https://github.com/user-attachments/assets/58449fcb-5a8d-4b8b-86dd-8ca46965879b" />
-
-
+ 
 - 📊 **Dashboard Tableau (Analisis Konversi)**  
   https://public.tableau.com/app/profile/ghofar.ismail8792/viz/BankMarketingCampaign_17638186946940/ConversionRate?publish=yes
-  <img width="1811" height="816" alt="image" src="https://github.com/user-attachments/assets/2011cc9d-f540-47c1-9c1a-f35528d1bfab" />
-
-
+ 
 ---
 
 ## 🧠 Latar Belakang Bisnis
